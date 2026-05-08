@@ -1,0 +1,50 @@
+:root {
+  color: #1f2937;
+  background: #f5f7fb;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  display: grid;
+  gap: 16px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-card,
+.data-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.unread {
+  background: #ecf5ff;
+}
+
+.chart {
+  height: 360px;
+}
+
+.danger-text {
+  color: #f56c6c;
+}
