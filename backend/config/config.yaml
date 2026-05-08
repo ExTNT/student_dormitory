@@ -1,0 +1,18 @@
+server:
+  port: 8080
+  mode: debug
+database:
+  host: localhost
+  port: 5432
+  user: turing
+  password: "10928"
+  name: student_dormitory
+  sslmode: disable
+  max_open_conns: 25
+  max_idle_conns: 10
+jwt:
+  secret: change-me-in-env
+  access_expiry: 15m
+  refresh_expiry: 168h
+upload:
+  max_size: 5242880

@@ -7,6 +7,7 @@
 | 文件 | 说明 |
 |------|------|
 | `001_create_student_dormitory_schema.sql` | 创建宿舍管理系统的表、索引、视图、函数和触发器 |
+| `002_seed_student_dormitory_test_data.sql` | 插入前后端联调用测试数据，不包含工单和图片 |
 
 ## 数据库前提
 
@@ -36,6 +37,22 @@ PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/001_create_student_d
 ```bash
 PGPASSWORD=10928 psql -U turing -d student_dormitory -f 001_create_student_dormitory_schema.sql
 ```
+
+插入测试数据：
+
+```bash
+PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
+```
+
+测试账号默认密码均为 `123456`。常用账号：
+
+| 用户名 | 角色 | 说明 |
+|--------|------|------|
+| `admin001` | system_admin | 系统管理员 |
+| `manager001` | dormitory_manager | 宿舍管理员 |
+| `repair001` | repair_staff | 维修人员 |
+| `cleaner001` | cleaning_staff | 保洁人员 |
+| `student001` - `student008` | student | 学生 |
 
 ## 脚本内容
 
