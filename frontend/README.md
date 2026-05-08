@@ -95,10 +95,10 @@ src/api/http.ts
 当前值：
 
 ```ts
-export const API_BASE_URL = 'http://localhost:8080/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 ```
 
-如果后端地址变化，修改该常量即可。
+开发环境默认通过 Vite 代理转发到 `http://localhost:8080`。如果后端地址变化，可以设置 `VITE_API_BASE_URL` 覆盖默认值。
 
 ## 认证说明
 

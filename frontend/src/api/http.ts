@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus';
 import router from '@/router';
 import type { LoginResponse } from '@/types';
 
-export const API_BASE_URL = 'http://localhost:8080/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export const tokenStorage = {
   get accessToken() {

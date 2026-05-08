@@ -88,15 +88,15 @@ func NewRouter(svc *service.Service, cfg config.Config, log *zap.Logger) *gin.En
 	manager.PUT("/off-campus/:id/review", h.reviewOffCampus)
 	manager.PUT("/repairs/:id/review", h.reviewRepair)
 	manager.PUT("/cleanings/:id/review", h.reviewCleaning)
-	manager.GET("/dashboard/summary", h.dashboardSummary)
-	manager.GET("/dashboard/low-balance", h.lowBalanceRooms)
+
+	dashboard := api.Group("", middleware.AuthRequired(cfg.JWT, "dormitory_manager", "system_admin"))
+	dashboard.GET("/dashboard/summary", h.dashboardSummary)
+	dashboard.GET("/dashboard/low-balance", h.lowBalanceRooms)
 
 	admin := api.Group("", middleware.AuthRequired(cfg.JWT, "system_admin"))
 	admin.POST("/users", h.createUser)
 	admin.GET("/allocations/pending", h.pendingAllocations)
 	admin.PUT("/allocations/:id/review", h.reviewAllocation)
-	admin.GET("/dashboard/summary", h.dashboardSummary)
-	admin.GET("/dashboard/low-balance", h.lowBalanceRooms)
 
 	return r
 }
