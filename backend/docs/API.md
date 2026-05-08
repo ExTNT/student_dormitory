@@ -334,6 +334,8 @@ Authorization: Bearer <access_token>
 
 `GET /repairs/pending`
 
+权限：`repair_staff`、`dormitory_manager`
+
 ### 接单
 
 `PUT /repairs/{id}/accept`
@@ -368,6 +370,8 @@ Authorization: Bearer <access_token>
 
 `GET /cleanings/pending`
 
+权限：`cleaning_staff`、`dormitory_manager`
+
 ### 接单
 
 `PUT /cleanings/{id}/accept`
@@ -388,6 +392,12 @@ Authorization: Bearer <access_token>
 
 以下接口权限：`dormitory_manager`
 
+### 待审批离校申请
+
+`GET /leaves/pending`
+
+返回 `status=pending` 的离校/节假日离校申请，包含学生姓名、目的地、紧急联系人、返校时间和原因。
+
 ### 审批离校申请
 
 `PUT /leaves/{id}/review`
@@ -402,17 +412,35 @@ Authorization: Bearer <access_token>
 
 `status` 可选：`approved`、`rejected`。
 
+### 待审批晚归记录
+
+`GET /late-returns/pending`
+
+返回 `status=pending` 的晚归记录，包含学生姓名、晚归日期和原因。
+
 ### 审批晚归记录
 
 `PUT /late-returns/{id}/review`
 
 请求同上。
 
+### 待审批换寝申请
+
+`GET /room-changes/pending`
+
+返回 `status=pending` 的换寝申请，包含原床位、目标床位或推荐床位信息。
+
 ### 审批换寝申请
 
 `PUT /room-changes/{id}/review`
 
 请求同上。批准后后端会在事务中释放旧床位并占用目标或推荐床位。
+
+### 待审批校外居住申请
+
+`GET /off-campus/pending`
+
+返回 `status=pending` 的校外居住申请，包含学生姓名、是否保留床位、原因和居住地址。
 
 ### 审批校外居住申请
 
@@ -421,6 +449,8 @@ Authorization: Bearer <access_token>
 请求同上。若批准且申请不保留床位，后端会释放学生当前床位。
 
 ### 审核维修工单
+
+列表接口：`GET /repairs/pending`，其中 `status=repaired` 的记录可审核。
 
 `PUT /repairs/{id}/review`
 
@@ -436,6 +466,8 @@ Authorization: Bearer <access_token>
 `status` 可选：`completed`、`rejected`。
 
 ### 审核保洁工单
+
+列表接口：`GET /cleanings/pending`，其中 `status=cleaned` 的记录可审核。
 
 `PUT /cleanings/{id}/review`
 

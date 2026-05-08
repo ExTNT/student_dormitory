@@ -63,20 +63,28 @@ func NewRouter(svc *service.Service, cfg config.Config, log *zap.Logger) *gin.En
 	student.POST("/cleanings", h.createCleaning)
 	student.POST("/payments", h.createPayment)
 
+	repairRead := api.Group("", middleware.AuthRequired(cfg.JWT, "repair_staff", "dormitory_manager"))
+	repairRead.GET("/repairs/pending", h.pendingRepairs)
+
 	repair := api.Group("", middleware.AuthRequired(cfg.JWT, "repair_staff"))
-	repair.GET("/repairs/pending", h.pendingRepairs)
 	repair.PUT("/repairs/:id/accept", h.acceptRepair)
 	repair.PUT("/repairs/:id/repair", h.completeRepair)
 
+	cleaningRead := api.Group("", middleware.AuthRequired(cfg.JWT, "cleaning_staff", "dormitory_manager"))
+	cleaningRead.GET("/cleanings/pending", h.pendingCleanings)
+
 	cleaning := api.Group("", middleware.AuthRequired(cfg.JWT, "cleaning_staff"))
-	cleaning.GET("/cleanings/pending", h.pendingCleanings)
 	cleaning.PUT("/cleanings/:id/accept", h.acceptCleaning)
 	cleaning.PUT("/cleanings/:id/clean", h.completeCleaning)
 
 	manager := api.Group("", middleware.AuthRequired(cfg.JWT, "dormitory_manager"))
+	manager.GET("/leaves/pending", h.pendingLeaves)
 	manager.PUT("/leaves/:id/review", h.reviewLeave)
+	manager.GET("/late-returns/pending", h.pendingLateReturns)
 	manager.PUT("/late-returns/:id/review", h.reviewLateReturn)
+	manager.GET("/room-changes/pending", h.pendingRoomChanges)
 	manager.PUT("/room-changes/:id/review", h.reviewRoomChange)
+	manager.GET("/off-campus/pending", h.pendingOffCampus)
 	manager.PUT("/off-campus/:id/review", h.reviewOffCampus)
 	manager.PUT("/repairs/:id/review", h.reviewRepair)
 	manager.PUT("/cleanings/:id/review", h.reviewCleaning)
@@ -310,8 +318,18 @@ func (h *Handler) reviewLeave(c *gin.Context) {
 	h.reviewApplication(c, "leave_applications")
 }
 
+func (h *Handler) pendingLeaves(c *gin.Context) {
+	rows, err := h.svc.PendingLeaves(c.Request.Context())
+	respond(c, rows, err)
+}
+
 func (h *Handler) reviewLateReturn(c *gin.Context) {
 	h.reviewApplication(c, "late_return_records")
+}
+
+func (h *Handler) pendingLateReturns(c *gin.Context) {
+	rows, err := h.svc.PendingLateReturns(c.Request.Context())
+	respond(c, rows, err)
 }
 
 func (h *Handler) reviewApplication(c *gin.Context, table string) {
@@ -350,6 +368,11 @@ func (h *Handler) reviewRoomChange(c *gin.Context) {
 	respondNoContent(c, h.svc.ApproveRoomChange(c.Request.Context(), id, middleware.UserID(c), req.Status))
 }
 
+func (h *Handler) pendingRoomChanges(c *gin.Context) {
+	rows, err := h.svc.PendingRoomChanges(c.Request.Context())
+	respond(c, rows, err)
+}
+
 func (h *Handler) reviewOffCampus(c *gin.Context) {
 	id, ok := paramInt64(c, "id")
 	if !ok {
@@ -360,6 +383,11 @@ func (h *Handler) reviewOffCampus(c *gin.Context) {
 		return
 	}
 	respondNoContent(c, h.svc.ReviewOffCampus(c.Request.Context(), id, middleware.UserID(c), req.Status))
+}
+
+func (h *Handler) pendingOffCampus(c *gin.Context) {
+	rows, err := h.svc.PendingOffCampus(c.Request.Context())
+	respond(c, rows, err)
 }
 
 func (h *Handler) reviewRepair(c *gin.Context) {

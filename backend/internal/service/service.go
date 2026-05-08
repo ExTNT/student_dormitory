@@ -649,6 +649,103 @@ func (s *Service) PendingCleanings(ctx context.Context) ([]model.PendingCleaning
 	return rows, err
 }
 
+func (s *Service) PendingLeaves(ctx context.Context) ([]model.PendingLeave, error) {
+	var rows []model.PendingLeave
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			la.id,
+			la.student_id,
+			u.name AS student_name,
+			la.type,
+			la.destination,
+			la.emergency_contact,
+			la.return_time,
+			la.reason,
+			la.status,
+			la.created_at
+		FROM leave_applications la
+		JOIN users u ON u.id = la.student_id
+		WHERE la.status='pending'
+		ORDER BY la.created_at`)
+	return rows, err
+}
+
+func (s *Service) PendingLateReturns(ctx context.Context) ([]model.PendingLateReturn, error) {
+	var rows []model.PendingLateReturn
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			lr.id,
+			lr.student_id,
+			u.name AS student_name,
+			lr.return_date,
+			lr.reason,
+			lr.status,
+			lr.created_at
+		FROM late_return_records lr
+		JOIN users u ON u.id = lr.student_id
+		WHERE lr.status='pending'
+		ORDER BY lr.created_at`)
+	return rows, err
+}
+
+func (s *Service) PendingRoomChanges(ctx context.Context) ([]model.PendingRoomChange, error) {
+	var rows []model.PendingRoomChange
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			rcr.id,
+			rcr.student_id,
+			u.name AS student_name,
+			rcr.from_bed_id,
+			from_building.name AS from_building_name,
+			from_room.room_number AS from_room_number,
+			from_bed.bed_label AS from_bed_label,
+			rcr.target_room_id,
+			rcr.target_bed_id,
+			target_building.name AS target_building_name,
+			target_room.room_number AS target_room_number,
+			target_bed.bed_label AS target_bed_label,
+			rcr.recommended_bed_id,
+			recommended_building.name AS recommended_building_name,
+			recommended_room.room_number AS recommended_room_number,
+			recommended_bed.bed_label AS recommended_bed_label,
+			rcr.reason,
+			rcr.status,
+			rcr.created_at
+		FROM room_change_requests rcr
+		JOIN users u ON u.id = rcr.student_id
+		JOIN beds from_bed ON from_bed.id = rcr.from_bed_id
+		JOIN rooms from_room ON from_room.id = from_bed.room_id
+		JOIN buildings from_building ON from_building.id = from_room.building_id
+		LEFT JOIN rooms target_room ON target_room.id = rcr.target_room_id
+		LEFT JOIN buildings target_building ON target_building.id = target_room.building_id
+		LEFT JOIN beds target_bed ON target_bed.id = rcr.target_bed_id
+		LEFT JOIN beds recommended_bed ON recommended_bed.id = rcr.recommended_bed_id
+		LEFT JOIN rooms recommended_room ON recommended_room.id = recommended_bed.room_id
+		LEFT JOIN buildings recommended_building ON recommended_building.id = recommended_room.building_id
+		WHERE rcr.status='pending'
+		ORDER BY rcr.created_at`)
+	return rows, err
+}
+
+func (s *Service) PendingOffCampus(ctx context.Context) ([]model.PendingOffCampus, error) {
+	var rows []model.PendingOffCampus
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			app.id,
+			app.student_id,
+			u.name AS student_name,
+			app.retain_bed,
+			app.reason,
+			app.destination,
+			app.status,
+			app.created_at
+		FROM off_campus_living_applications app
+		JOIN users u ON u.id = app.student_id
+		WHERE app.status='pending'
+		ORDER BY app.created_at`)
+	return rows, err
+}
+
 func (s *Service) PendingAllocations(ctx context.Context) ([]model.AllocationRequest, error) {
 	var rows []model.AllocationRequest
 	err := s.db.SelectContext(ctx, &rows, `SELECT * FROM allocation_requests WHERE status='pending' ORDER BY created_at`)

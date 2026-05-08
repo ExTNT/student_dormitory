@@ -143,6 +143,62 @@ type PendingCleaning struct {
 	ReviewerName *string   `db:"reviewer_name" json:"reviewer_name,omitempty"`
 }
 
+type PendingLeave struct {
+	ID               int64     `db:"id" json:"id"`
+	StudentID        int64     `db:"student_id" json:"student_id"`
+	StudentName      string    `db:"student_name" json:"student_name"`
+	Type             string    `db:"type" json:"type"`
+	Destination      string    `db:"destination" json:"destination"`
+	EmergencyContact string    `db:"emergency_contact" json:"emergency_contact"`
+	ReturnTime       time.Time `db:"return_time" json:"return_time"`
+	Reason           string    `db:"reason" json:"reason"`
+	Status           string    `db:"status" json:"status"`
+	CreatedAt        time.Time `db:"created_at" json:"created_at"`
+}
+
+type PendingLateReturn struct {
+	ID          int64     `db:"id" json:"id"`
+	StudentID   int64     `db:"student_id" json:"student_id"`
+	StudentName string    `db:"student_name" json:"student_name"`
+	ReturnDate  time.Time `db:"return_date" json:"return_date"`
+	Reason      string    `db:"reason" json:"reason"`
+	Status      string    `db:"status" json:"status"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+}
+
+type PendingRoomChange struct {
+	ID                      int64     `db:"id" json:"id"`
+	StudentID               int64     `db:"student_id" json:"student_id"`
+	StudentName             string    `db:"student_name" json:"student_name"`
+	FromBedID               int       `db:"from_bed_id" json:"from_bed_id"`
+	FromBuildingName        string    `db:"from_building_name" json:"from_building_name"`
+	FromRoomNumber          string    `db:"from_room_number" json:"from_room_number"`
+	FromBedLabel            string    `db:"from_bed_label" json:"from_bed_label"`
+	TargetRoomID            *int      `db:"target_room_id" json:"target_room_id,omitempty"`
+	TargetBedID             *int      `db:"target_bed_id" json:"target_bed_id,omitempty"`
+	TargetBuildingName      *string   `db:"target_building_name" json:"target_building_name,omitempty"`
+	TargetRoomNumber        *string   `db:"target_room_number" json:"target_room_number,omitempty"`
+	TargetBedLabel          *string   `db:"target_bed_label" json:"target_bed_label,omitempty"`
+	RecommendedBedID        *int      `db:"recommended_bed_id" json:"recommended_bed_id,omitempty"`
+	RecommendedBuildingName *string   `db:"recommended_building_name" json:"recommended_building_name,omitempty"`
+	RecommendedRoomNumber   *string   `db:"recommended_room_number" json:"recommended_room_number,omitempty"`
+	RecommendedBedLabel     *string   `db:"recommended_bed_label" json:"recommended_bed_label,omitempty"`
+	Reason                  string    `db:"reason" json:"reason"`
+	Status                  string    `db:"status" json:"status"`
+	CreatedAt               time.Time `db:"created_at" json:"created_at"`
+}
+
+type PendingOffCampus struct {
+	ID          int64     `db:"id" json:"id"`
+	StudentID   int64     `db:"student_id" json:"student_id"`
+	StudentName string    `db:"student_name" json:"student_name"`
+	RetainBed   int       `db:"retain_bed" json:"retain_bed"`
+	Reason      string    `db:"reason" json:"reason"`
+	Destination *string   `db:"destination" json:"destination,omitempty"`
+	Status      string    `db:"status" json:"status"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+}
+
 type AllocationRequest struct {
 	ID                int64      `db:"id" json:"id"`
 	StudentID         int64      `db:"student_id" json:"student_id"`
