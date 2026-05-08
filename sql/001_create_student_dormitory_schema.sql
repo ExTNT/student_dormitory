@@ -361,7 +361,28 @@ SELECT student_id, '晚归'::TEXT AS request_type, id AS request_id, status, cre
 FROM late_return_records
 UNION ALL
 SELECT student_id, '校外居住'::TEXT AS request_type, id AS request_id, status, created_at, COALESCE(destination, left(reason, 120)) AS detail
-FROM off_campus_living_applications;
+FROM off_campus_living_applications
+UNION ALL
+SELECT
+    ar.student_id,
+    '分配'::TEXT AS request_type,
+    ar.id AS request_id,
+    ar.status,
+    ar.created_at,
+    b.name || ' ' || r.room_number || ' ' || bed.bed_label || '床' AS detail
+FROM allocation_requests ar
+JOIN rooms r ON r.id = ar.recommended_room_id
+JOIN buildings b ON b.id = r.building_id
+JOIN beds bed ON bed.id = ar.recommended_bed_id
+UNION ALL
+SELECT
+    payer_id AS student_id,
+    '缴费'::TEXT AS request_type,
+    id AS request_id,
+    'paid'::TEXT AS status,
+    paid_at AS created_at,
+    payment_type || ' ' || amount::TEXT || '元' AS detail
+FROM utility_payments;
 
 CREATE OR REPLACE VIEW v_attachment_metadata AS
 SELECT

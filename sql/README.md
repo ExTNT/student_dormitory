@@ -8,6 +8,7 @@
 |------|------|
 | `001_create_student_dormitory_schema.sql` | 创建宿舍管理系统的表、索引、视图、函数和触发器 |
 | `002_seed_student_dormitory_test_data.sql` | 插入前后端联调用测试数据，不包含工单和图片 |
+| `003_truncate_student_dormitory_data.sql` | 清空所有业务数据并重置自增序列，保留表结构、视图和触发器 |
 
 ## 数据库前提
 
@@ -42,6 +43,12 @@ PGPASSWORD=10928 psql -U turing -d student_dormitory -f 001_create_student_dormi
 
 ```bash
 PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
+```
+
+清空所有数据：
+
+```bash
+PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/003_truncate_student_dormitory_data.sql
 ```
 
 测试账号默认密码均为 `123456`。常用账号：

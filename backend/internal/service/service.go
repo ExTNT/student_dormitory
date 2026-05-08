@@ -7,6 +7,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
+	"strings"
 	"time"
 
 	"dormitory/backend/config"
@@ -285,23 +287,8 @@ func (s *Service) CreateAllocation(ctx context.Context, studentID int64) (int64,
 		return 0, fmt.Errorf("%w: student already has a pending allocation", errs.ErrConflict)
 	}
 
-	var bed struct {
-		BedID  int `db:"bed_id"`
-		RoomID int `db:"room_id"`
-	}
-	if err := tx.GetContext(ctx, &bed, `
-		SELECT bed.id AS bed_id, bed.room_id
-		FROM beds bed
-		JOIN rooms r ON r.id = bed.room_id
-		WHERE bed.status='available'
-		  AND NOT EXISTS (
-		      SELECT 1 FROM allocation_requests ar
-		      WHERE ar.recommended_bed_id = bed.id
-		        AND ar.status = 'pending'
-		  )
-		ORDER BY r.building_id, r.floor, r.room_number, bed.bed_label
-		LIMIT 1
-		FOR UPDATE OF bed SKIP LOCKED`); err != nil {
+	bed, err := s.recommendAllocationBed(ctx, tx, studentID)
+	if err != nil {
 		return 0, err
 	}
 	var id int64
@@ -312,6 +299,315 @@ func (s *Service) CreateAllocation(ctx context.Context, studentID int64) (int64,
 		return 0, err
 	}
 	return id, tx.Commit()
+}
+
+type recommendedBed struct {
+	BedID  int
+	RoomID int
+}
+
+type surveyProfile struct {
+	HasSurvey    bool
+	SleepMinutes *int
+	Smoking      *int
+	Snoring      *int
+	StudyTokens  map[string]struct{}
+}
+
+type allocationCandidateRow struct {
+	BedID              int            `db:"bed_id"`
+	RoomID             int            `db:"room_id"`
+	BuildingID         int            `db:"building_id"`
+	Floor              int            `db:"floor"`
+	RoomNumber         string         `db:"room_number"`
+	BedLabel           string         `db:"bed_label"`
+	TotalBeds          int            `db:"total_beds"`
+	RoommateID         sql.NullInt64  `db:"roommate_id"`
+	RoommateSleepTime  sql.NullString `db:"roommate_sleep_time"`
+	RoommateSmoking    sql.NullInt64  `db:"roommate_smoking"`
+	RoommateSnoring    sql.NullInt64  `db:"roommate_snoring"`
+	RoommateStudyHabit sql.NullString `db:"roommate_study_habit"`
+}
+
+type allocationCandidateScore struct {
+	BedID         int
+	RoomID        int
+	BuildingID    int
+	Floor         int
+	RoomNumber    string
+	BedLabel      string
+	TotalBeds     int
+	OccupiedCount int
+	Score         float64
+	seenRoommates map[int64]struct{}
+}
+
+func (s *Service) recommendAllocationBed(ctx context.Context, tx *sqlx.Tx, studentID int64) (recommendedBed, error) {
+	target, err := s.latestSurveyProfile(ctx, tx, studentID)
+	if err != nil {
+		return recommendedBed{}, err
+	}
+	if !target.HasSurvey {
+		return recommendedBed{}, fmt.Errorf("%w: lifestyle survey is required before allocation", errs.ErrBadRequest)
+	}
+
+	var rows []allocationCandidateRow
+	if err := tx.SelectContext(ctx, &rows, `
+		WITH latest_surveys AS (
+			SELECT DISTINCT ON (student_id)
+				student_id,
+				sleep_time::text AS sleep_time,
+				smoking,
+				snoring,
+				study_habit
+			FROM lifestyle_surveys
+			ORDER BY student_id, submitted_at DESC
+		)
+		SELECT
+			bed.id AS bed_id,
+			bed.room_id,
+			r.building_id,
+			r.floor,
+			r.room_number,
+			bed.bed_label,
+			r.total_beds,
+			roommate_bed.student_id AS roommate_id,
+			ls.sleep_time AS roommate_sleep_time,
+			ls.smoking AS roommate_smoking,
+			ls.snoring AS roommate_snoring,
+			ls.study_habit AS roommate_study_habit
+		FROM beds bed
+		JOIN rooms r ON r.id = bed.room_id
+		LEFT JOIN beds roommate_bed
+			ON roommate_bed.room_id = r.id
+		   AND roommate_bed.status = 'occupied'
+		   AND roommate_bed.student_id IS NOT NULL
+		LEFT JOIN latest_surveys ls ON ls.student_id = roommate_bed.student_id
+		WHERE bed.status='available'
+		  AND NOT EXISTS (
+		      SELECT 1 FROM allocation_requests ar
+		      WHERE ar.recommended_bed_id = bed.id
+		        AND ar.status = 'pending'
+		  )
+		ORDER BY r.building_id, r.floor, r.room_number, bed.bed_label
+		FOR UPDATE OF bed SKIP LOCKED`); err != nil {
+		return recommendedBed{}, err
+	}
+	if len(rows) == 0 {
+		return recommendedBed{}, sql.ErrNoRows
+	}
+
+	candidates := make(map[int]*allocationCandidateScore)
+	for _, row := range rows {
+		candidate := candidates[row.BedID]
+		if candidate == nil {
+			candidate = &allocationCandidateScore{
+				BedID:         row.BedID,
+				RoomID:        row.RoomID,
+				BuildingID:    row.BuildingID,
+				Floor:         row.Floor,
+				RoomNumber:    row.RoomNumber,
+				BedLabel:      row.BedLabel,
+				TotalBeds:     row.TotalBeds,
+				Score:         100,
+				seenRoommates: map[int64]struct{}{},
+			}
+			candidates[row.BedID] = candidate
+		}
+		if !row.RoommateID.Valid {
+			continue
+		}
+		roommateID := row.RoommateID.Int64
+		if _, seen := candidate.seenRoommates[roommateID]; seen {
+			continue
+		}
+		candidate.seenRoommates[roommateID] = struct{}{}
+		candidate.OccupiedCount++
+		roommate := surveyProfile{
+			HasSurvey:   row.RoommateSleepTime.Valid || row.RoommateSmoking.Valid || row.RoommateSnoring.Valid || row.RoommateStudyHabit.Valid,
+			StudyTokens: map[string]struct{}{},
+		}
+		if row.RoommateSleepTime.Valid {
+			if minutes, ok := parseSleepMinutes(row.RoommateSleepTime.String); ok {
+				roommate.SleepMinutes = &minutes
+			}
+		}
+		if row.RoommateSmoking.Valid {
+			v := int(row.RoommateSmoking.Int64)
+			roommate.Smoking = &v
+		}
+		if row.RoommateSnoring.Valid {
+			v := int(row.RoommateSnoring.Int64)
+			roommate.Snoring = &v
+		}
+		if row.RoommateStudyHabit.Valid {
+			roommate.StudyTokens = tokenizeStudyHabit(row.RoommateStudyHabit.String)
+		}
+		candidate.Score += compatibilityScore(target, roommate)
+	}
+
+	var best *allocationCandidateScore
+	for _, candidate := range candidates {
+		if candidate.OccupiedCount == 0 {
+			candidate.Score += 8
+		} else {
+			candidate.Score += 12 + float64(candidate.OccupiedCount)
+		}
+		if best == nil || betterAllocationCandidate(candidate, best) {
+			best = candidate
+		}
+	}
+	if best == nil {
+		return recommendedBed{}, sql.ErrNoRows
+	}
+	return recommendedBed{BedID: best.BedID, RoomID: best.RoomID}, nil
+}
+
+func (s *Service) latestSurveyProfile(ctx context.Context, tx *sqlx.Tx, studentID int64) (surveyProfile, error) {
+	var row struct {
+		SleepTime  sql.NullString `db:"sleep_time"`
+		Smoking    sql.NullInt64  `db:"smoking"`
+		Snoring    sql.NullInt64  `db:"snoring"`
+		StudyHabit sql.NullString `db:"study_habit"`
+	}
+	err := tx.GetContext(ctx, &row, `
+		SELECT sleep_time::text AS sleep_time, smoking, snoring, study_habit
+		FROM lifestyle_surveys
+		WHERE student_id=$1
+		ORDER BY submitted_at DESC
+		LIMIT 1`, studentID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return surveyProfile{StudyTokens: map[string]struct{}{}}, nil
+	}
+	if err != nil {
+		return surveyProfile{}, err
+	}
+	profile := surveyProfile{HasSurvey: true, StudyTokens: map[string]struct{}{}}
+	if row.SleepTime.Valid {
+		if minutes, ok := parseSleepMinutes(row.SleepTime.String); ok {
+			profile.SleepMinutes = &minutes
+		}
+	}
+	if row.Smoking.Valid {
+		v := int(row.Smoking.Int64)
+		profile.Smoking = &v
+	}
+	if row.Snoring.Valid {
+		v := int(row.Snoring.Int64)
+		profile.Snoring = &v
+	}
+	if row.StudyHabit.Valid {
+		profile.StudyTokens = tokenizeStudyHabit(row.StudyHabit.String)
+	}
+	return profile, nil
+}
+
+func compatibilityScore(target, roommate surveyProfile) float64 {
+	if !roommate.HasSurvey {
+		return 2
+	}
+	score := 0.0
+	if target.Smoking != nil && roommate.Smoking != nil {
+		if *target.Smoking == *roommate.Smoking {
+			score += 35
+		} else {
+			score -= 80
+		}
+	}
+	if target.Snoring != nil && roommate.Snoring != nil {
+		if *target.Snoring == *roommate.Snoring {
+			score += 20
+		} else {
+			score -= 35
+		}
+	}
+	if target.SleepMinutes != nil && roommate.SleepMinutes != nil {
+		diff := circularMinuteDiff(*target.SleepMinutes, *roommate.SleepMinutes)
+		switch {
+		case diff <= 30:
+			score += 30
+		case diff <= 60:
+			score += 20
+		case diff <= 120:
+			score += 8
+		default:
+			score -= 20
+		}
+	}
+	overlap := tokenOverlap(target.StudyTokens, roommate.StudyTokens)
+	if overlap > 0 {
+		score += math.Min(float64(overlap)*8, 24)
+	}
+	return score
+}
+
+func betterAllocationCandidate(candidate, best *allocationCandidateScore) bool {
+	if candidate.Score != best.Score {
+		return candidate.Score > best.Score
+	}
+	if candidate.OccupiedCount != best.OccupiedCount {
+		return candidate.OccupiedCount > best.OccupiedCount
+	}
+	if candidate.BuildingID != best.BuildingID {
+		return candidate.BuildingID < best.BuildingID
+	}
+	if candidate.Floor != best.Floor {
+		return candidate.Floor < best.Floor
+	}
+	if candidate.RoomNumber != best.RoomNumber {
+		return candidate.RoomNumber < best.RoomNumber
+	}
+	return candidate.BedLabel < best.BedLabel
+}
+
+func parseSleepMinutes(v string) (int, bool) {
+	parts := strings.Split(v, ":")
+	if len(parts) < 2 {
+		return 0, false
+	}
+	t, err := time.Parse("15:04", parts[0]+":"+parts[1])
+	if err != nil {
+		return 0, false
+	}
+	return t.Hour()*60 + t.Minute(), true
+}
+
+func circularMinuteDiff(a, b int) int {
+	diff := int(math.Abs(float64(a - b)))
+	if diff > 720 {
+		return 1440 - diff
+	}
+	return diff
+}
+
+func tokenizeStudyHabit(v string) map[string]struct{} {
+	normalized := strings.ToLower(strings.TrimSpace(v))
+	replacer := strings.NewReplacer("，", " ", ",", " ", "。", " ", ".", " ", "、", " ", ";", " ", "；", " ", "\t", " ", "\n", " ")
+	normalized = replacer.Replace(normalized)
+	tokens := map[string]struct{}{}
+	for _, token := range strings.Fields(normalized) {
+		if token == "" {
+			continue
+		}
+		tokens[token] = struct{}{}
+	}
+	if len(tokens) == 0 && normalized != "" {
+		tokens[normalized] = struct{}{}
+	}
+	return tokens
+}
+
+func tokenOverlap(a, b map[string]struct{}) int {
+	if len(a) == 0 || len(b) == 0 {
+		return 0
+	}
+	count := 0
+	for token := range a {
+		if _, ok := b[token]; ok {
+			count++
+		}
+	}
+	return count
 }
 
 func (s *Service) insertID(ctx context.Context, query string, args ...any) (int64, error) {
@@ -332,6 +628,9 @@ func (s *Service) AcceptRepair(ctx context.Context, id, staffID int64) error {
 }
 
 func (s *Service) CompleteRepair(ctx context.Context, id, staffID int64, desc string) error {
+	if err := s.requireAttachmentExists(ctx, "repair", id, "after"); err != nil {
+		return err
+	}
 	res, err := s.db.ExecContext(ctx, `UPDATE repair_requests SET status='repaired', repair_description=$3 WHERE id=$1 AND repair_staff_id=$2 AND status='accepted'`, id, staffID, desc)
 	return requireChanged(res, err)
 }
@@ -362,6 +661,9 @@ func (s *Service) AcceptCleaning(ctx context.Context, id, cleanerID int64) error
 }
 
 func (s *Service) CompleteCleaning(ctx context.Context, id, cleanerID int64) error {
+	if err := s.requireAttachmentExists(ctx, "cleaning", id, "after"); err != nil {
+		return err
+	}
 	res, err := s.db.ExecContext(ctx, `UPDATE cleaning_requests SET status='cleaned' WHERE id=$1 AND cleaner_id=$2 AND status='accepted'`, id, cleanerID)
 	return requireChanged(res, err)
 }
@@ -570,6 +872,23 @@ func (s *Service) requireStudentInRoom(ctx context.Context, studentID int64, roo
 	}
 	if !ok {
 		return fmt.Errorf("%w: student is not assigned to this room", errs.ErrForbidden)
+	}
+	return nil
+}
+
+func (s *Service) requireAttachmentExists(ctx context.Context, ownerType string, ownerID int64, category string) error {
+	var ok bool
+	if err := s.db.GetContext(ctx, &ok, `
+		SELECT EXISTS (
+			SELECT 1 FROM attachments
+			WHERE owner_type=$1
+			  AND owner_id=$2
+			  AND category=$3
+		)`, ownerType, ownerID, category); err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("%w: required %s photo is missing", errs.ErrBadRequest, category)
 	}
 	return nil
 }
