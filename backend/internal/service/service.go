@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 	"time"
 
@@ -604,7 +605,7 @@ func tokenizeStudyHabit(v string) map[string]struct{} {
 	replacer := strings.NewReplacer("，", " ", ",", " ", "。", " ", ".", " ", "、", " ", ";", " ", "；", " ", "\t", " ", "\n", " ")
 	normalized = replacer.Replace(normalized)
 	tokens := map[string]struct{}{}
-	for _, token := range strings.Fields(normalized) {
+	for token := range strings.FieldsSeq(normalized) {
 		if token == "" {
 			continue
 		}
@@ -1286,19 +1287,9 @@ func tokenHash(token string) string {
 }
 
 func oneOf(v string, allowed ...string) bool {
-	for _, item := range allowed {
-		if v == item {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(allowed, v)
 }
 
 func oneOfInt(v int, allowed ...int) bool {
-	for _, item := range allowed {
-		if v == item {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(allowed, v)
 }
