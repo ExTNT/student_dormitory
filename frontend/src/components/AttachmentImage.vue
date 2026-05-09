@@ -44,7 +44,10 @@ onBeforeUnmount(() => {
   place-items: center;
   overflow: hidden;
   border: 1px solid #dcdfe6;
-  border-radius: 6px;
-  background: #fafafa;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(11, 93, 102, 0.06), transparent),
+    #fafafa;
+  box-shadow: var(--shadow-sm);
 }
 </style>

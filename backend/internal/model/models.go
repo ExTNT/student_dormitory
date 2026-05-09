@@ -10,6 +10,14 @@ type User struct {
 	Name         string    `db:"name" json:"name"`
 	Phone        *string   `db:"phone" json:"phone,omitempty"`
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
+	HasSurvey    bool      `db:"has_survey" json:"has_survey"`
+	HasBed       bool      `db:"has_bed" json:"has_bed"`
+	BuildingID   *int      `db:"building_id" json:"building_id,omitempty"`
+	BuildingName *string   `db:"building_name" json:"building_name,omitempty"`
+	RoomID       *int      `db:"room_id" json:"room_id,omitempty"`
+	RoomNumber   *string   `db:"room_number" json:"room_number,omitempty"`
+	BedID        *int      `db:"bed_id" json:"bed_id,omitempty"`
+	BedLabel     *string   `db:"bed_label" json:"bed_label,omitempty"`
 }
 
 type Building struct {

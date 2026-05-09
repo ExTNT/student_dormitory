@@ -13,5 +13,8 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(11, 93, 102, 0.13), transparent 28%),
+    var(--bg);
 }
 </style>

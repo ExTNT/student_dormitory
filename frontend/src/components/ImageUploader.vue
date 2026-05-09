@@ -41,6 +41,12 @@ function beforeUpload(file: File) {
 
 <template>
   <el-upload :http-request="upload" :before-upload="beforeUpload" :show-file-list="false" accept="image/jpeg,image/png">
-    <el-button type="primary">上传图片</el-button>
+    <el-button type="primary" class="upload-button">上传图片</el-button>
   </el-upload>
 </template>
+
+<style scoped>
+.upload-button {
+  min-width: 96px;
+}
+</style>

@@ -113,7 +113,26 @@ func (s *Service) CreateUser(ctx context.Context, req dto.CreateUserRequest) (mo
 
 func (s *Service) User(ctx context.Context, id int64) (model.User, error) {
 	var user model.User
-	err := s.db.GetContext(ctx, &user, `SELECT * FROM users WHERE id=$1`, id)
+	err := s.db.GetContext(ctx, &user, `
+		SELECT
+			u.*,
+			EXISTS (
+				SELECT 1 FROM lifestyle_surveys ls WHERE ls.student_id = u.id
+			) AS has_survey,
+			bed.id IS NOT NULL AS has_bed,
+			building.id AS building_id,
+			building.name AS building_name,
+			room.id AS room_id,
+			room.room_number,
+			bed.id AS bed_id,
+			bed.bed_label
+		FROM users u
+		LEFT JOIN beds bed
+			ON bed.student_id = u.id
+			AND bed.status = 'occupied'
+		LEFT JOIN rooms room ON room.id = bed.room_id
+		LEFT JOIN buildings building ON building.id = room.building_id
+		WHERE u.id=$1`, id)
 	return user, err
 }
 

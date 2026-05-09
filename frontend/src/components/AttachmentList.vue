@@ -54,5 +54,9 @@ watch(() => [props.ownerType, props.ownerId, props.category], fetchList);
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
 }
 </style>

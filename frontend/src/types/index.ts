@@ -7,6 +7,14 @@ export interface User {
   name: string;
   phone?: string;
   created_at: string;
+  has_survey: boolean;
+  has_bed: boolean;
+  building_id?: number;
+  building_name?: string;
+  room_id?: number;
+  room_number?: string;
+  bed_id?: number;
+  bed_label?: string;
 }
 
 export interface LoginRequest {

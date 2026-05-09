@@ -112,7 +112,18 @@ Authorization: Bearer <access_token>
 
 权限：任意已登录用户
 
-响应字段来自 `users`，不包含密码哈希。
+响应字段来自 `users`，不包含密码哈希。学生若已分配床位，会额外返回当前宿舍/床位信息；所有用户都会返回 `has_survey` 和 `has_bed`，便于前端控制入口显示。
+
+补充字段：
+
+- `has_survey`：是否提交过生活习惯调查
+- `has_bed`：是否拥有已占用床位
+- `building_id`
+- `building_name`
+- `room_id`
+- `room_number`
+- `bed_id`
+- `bed_label`
 
 ### 楼栋列表
 
