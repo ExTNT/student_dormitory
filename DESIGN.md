@@ -48,29 +48,26 @@ flowchart TD
 
 ## 3. 目录与模块
 
-```mermaid
-flowchart TD
-    Root["项目根目录"]
+```text
+backend/
+  cmd/server        服务启动入口
+  config            配置文件
+  docs/API.md       REST API 文档
+  internal          路由、处理器、服务、模型等后端实现
 
-    Root --> Backend["backend"]
-    Backend --> BackendServer["cmd/server<br/>服务启动入口"]
-    Backend --> BackendConfig["config<br/>配置文件"]
-    Backend --> BackendDocs["docs/API.md<br/>REST API 文档"]
-    Backend --> BackendInternal["internal<br/>路由、处理器、服务、模型"]
+frontend/
+  src/api           REST API 封装
+  src/components    通用组件
+  src/router        路由和权限守卫
+  src/stores        Pinia 状态
+  src/types         TypeScript 类型
+  src/utils         工具函数
+  src/views         页面
 
-    Root --> Frontend["frontend"]
-    Frontend --> FrontendAPI["src/api<br/>REST API 封装"]
-    Frontend --> FrontendComponents["src/components<br/>通用组件"]
-    Frontend --> FrontendRouter["src/router<br/>路由和权限守卫"]
-    Frontend --> FrontendStores["src/stores<br/>Pinia 状态"]
-    Frontend --> FrontendTypes["src/types<br/>TypeScript 类型"]
-    Frontend --> FrontendUtils["src/utils<br/>工具函数"]
-    Frontend --> FrontendViews["src/views<br/>页面"]
-
-    Root --> SQL["sql"]
-    SQL --> Schema["001_create...<br/>表、视图、函数、触发器"]
-    SQL --> Seed["002_seed...<br/>测试数据"]
-    SQL --> Truncate["003_truncate...<br/>清空数据脚本"]
+sql/
+  001_create...     表、视图、函数、触发器
+  002_seed...       测试数据
+  003_truncate...   清空数据脚本
 ```
 
 ## 4. 核心业务域
