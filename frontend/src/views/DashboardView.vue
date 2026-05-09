@@ -16,13 +16,23 @@ const links = computed(() => {
         ['/student/cleaning', '保洁申请'],
       ];
     case 'repair_staff':
-      return [['/repair/orders', '待处理维修工单']];
+      return [
+        ['/repair/orders', '接收维修工单'],
+        ['/repair/my-orders', '我的维修工单'],
+      ];
     case 'cleaning_staff':
-      return [['/cleaning/orders', '待处理保洁工单']];
+      return [
+        ['/cleaning/orders', '接收保洁工单'],
+        ['/cleaning/my-orders', '我的保洁工单'],
+      ];
     case 'dormitory_manager':
       return [
         ['/manager/leaves', '待审批离校'],
         ['/manager/room-changes', '换寝审批'],
+        ['/manager/repairs', '待审核维修'],
+        ['/manager/cleanings', '待审核保洁'],
+        ['/manager/repairs/all', '全部维修工单'],
+        ['/manager/cleanings/all', '全部保洁工单'],
         ['/manager/summary', '统计'],
       ];
     case 'system_admin':

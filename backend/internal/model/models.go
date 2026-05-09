@@ -130,25 +130,42 @@ type AttachmentData struct {
 }
 
 type PendingRepair struct {
-	RequestID       int64     `db:"request_id" json:"request_id"`
-	Status          string    `db:"status" json:"status"`
-	StudentName     string    `db:"student_name" json:"student_name"`
-	RoomNumber      string    `db:"room_number" json:"room_number"`
-	Description     string    `db:"description" json:"description"`
-	CreatedAt       time.Time `db:"created_at" json:"created_at"`
-	RepairStaffName *string   `db:"repair_staff_name" json:"repair_staff_name,omitempty"`
-	ReviewerName    *string   `db:"reviewer_name" json:"reviewer_name,omitempty"`
+	RequestID         int64      `db:"request_id" json:"request_id"`
+	Status            string     `db:"status" json:"status"`
+	StudentID         int64      `db:"student_id" json:"student_id"`
+	StudentName       string     `db:"student_name" json:"student_name"`
+	RoomID            int        `db:"room_id" json:"room_id"`
+	RoomNumber        string     `db:"room_number" json:"room_number"`
+	Description       string     `db:"description" json:"description"`
+	RepairStaffID     *int64     `db:"repair_staff_id" json:"repair_staff_id,omitempty"`
+	RepairStaffName   *string    `db:"repair_staff_name" json:"repair_staff_name,omitempty"`
+	RepairDescription *string    `db:"repair_description" json:"repair_description,omitempty"`
+	ReviewerID        *int64     `db:"reviewer_id" json:"reviewer_id,omitempty"`
+	ReviewerName      *string    `db:"reviewer_name" json:"reviewer_name,omitempty"`
+	ReviewComment     *string    `db:"review_comment" json:"review_comment,omitempty"`
+	CreatedAt         time.Time  `db:"created_at" json:"created_at"`
+	AcceptedAt        *time.Time `db:"accepted_at" json:"accepted_at,omitempty"`
+	RepairedAt        *time.Time `db:"repaired_at" json:"repaired_at,omitempty"`
+	ReviewedAt        *time.Time `db:"reviewed_at" json:"reviewed_at,omitempty"`
 }
 
 type PendingCleaning struct {
-	RequestID    int64     `db:"request_id" json:"request_id"`
-	Status       string    `db:"status" json:"status"`
-	StudentName  string    `db:"student_name" json:"student_name"`
-	BuildingName string    `db:"building_name" json:"building_name"`
-	LocationDesc string    `db:"location_desc" json:"location_desc"`
-	CreatedAt    time.Time `db:"created_at" json:"created_at"`
-	CleanerName  *string   `db:"cleaner_name" json:"cleaner_name,omitempty"`
-	ReviewerName *string   `db:"reviewer_name" json:"reviewer_name,omitempty"`
+	RequestID     int64      `db:"request_id" json:"request_id"`
+	Status        string     `db:"status" json:"status"`
+	StudentID     int64      `db:"student_id" json:"student_id"`
+	StudentName   string     `db:"student_name" json:"student_name"`
+	BuildingID    int        `db:"building_id" json:"building_id"`
+	BuildingName  string     `db:"building_name" json:"building_name"`
+	LocationDesc  string     `db:"location_desc" json:"location_desc"`
+	CleanerID     *int64     `db:"cleaner_id" json:"cleaner_id,omitempty"`
+	CleanerName   *string    `db:"cleaner_name" json:"cleaner_name,omitempty"`
+	ReviewerID    *int64     `db:"reviewer_id" json:"reviewer_id,omitempty"`
+	ReviewerName  *string    `db:"reviewer_name" json:"reviewer_name,omitempty"`
+	ReviewComment *string    `db:"review_comment" json:"review_comment,omitempty"`
+	CreatedAt     time.Time  `db:"created_at" json:"created_at"`
+	AcceptedAt    *time.Time `db:"accepted_at" json:"accepted_at,omitempty"`
+	CleanedAt     *time.Time `db:"cleaned_at" json:"cleaned_at,omitempty"`
+	ReviewedAt    *time.Time `db:"reviewed_at" json:"reviewed_at,omitempty"`
 }
 
 type PendingLeave struct {

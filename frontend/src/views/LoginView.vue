@@ -17,6 +17,8 @@ async function submit() {
     await auth.login(form);
     ElMessage.success('登录成功');
     router.replace((route.query.redirect as string) || roleHome[auth.user!.role]);
+  } catch {
+    ElMessage.error('账号和密码错误');
   } finally {
     loading.value = false;
   }

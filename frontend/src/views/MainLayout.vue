@@ -29,11 +29,13 @@ const menus: Record<Role, { path: string; label: string; icon: unknown }[]> = {
   ],
   repair_staff: [
     { path: '/repair/dashboard', label: '工作台', icon: House },
-    { path: '/repair/orders', label: '维修工单', icon: Tools },
+    { path: '/repair/orders', label: '接收工单', icon: Tools },
+    { path: '/repair/my-orders', label: '我的工单', icon: Tickets },
   ],
   cleaning_staff: [
     { path: '/cleaning/dashboard', label: '工作台', icon: House },
-    { path: '/cleaning/orders', label: '保洁工单', icon: Brush },
+    { path: '/cleaning/orders', label: '接收工单', icon: Brush },
+    { path: '/cleaning/my-orders', label: '我的工单', icon: Tickets },
   ],
   dormitory_manager: [
     { path: '/manager/dashboard', label: '工作台', icon: House },
@@ -41,8 +43,10 @@ const menus: Record<Role, { path: string; label: string; icon: unknown }[]> = {
     { path: '/manager/late-returns', label: '晚归审批', icon: Tickets },
     { path: '/manager/room-changes', label: '换寝审批', icon: Tickets },
     { path: '/manager/off-campus', label: '校外居住审批', icon: Tickets },
-    { path: '/manager/repairs', label: '维修审核', icon: Tools },
-    { path: '/manager/cleanings', label: '保洁审核', icon: Brush },
+    { path: '/manager/repairs', label: '待审核维修', icon: Tools },
+    { path: '/manager/repairs/all', label: '全部维修工单', icon: Tickets },
+    { path: '/manager/cleanings', label: '待审核保洁', icon: Brush },
+    { path: '/manager/cleanings/all', label: '全部保洁工单', icon: Tickets },
     { path: '/manager/summary', label: '楼栋统计', icon: DataLine },
     { path: '/manager/low-balance', label: '低余额房间', icon: Money },
   ],

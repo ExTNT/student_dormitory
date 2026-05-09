@@ -53,6 +53,12 @@ func NewRouter(svc *service.Service, cfg config.Config, log *zap.Logger) *gin.En
 	auth.GET("/attachments", h.attachmentMetadata)
 	auth.GET("/attachments/:id", h.downloadAttachment)
 
+	repairList := api.Group("", middleware.AuthRequired(cfg.JWT, "student", "repair_staff", "dormitory_manager"))
+	repairList.GET("/repairs", h.repairs)
+
+	cleaningList := api.Group("", middleware.AuthRequired(cfg.JWT, "student", "cleaning_staff", "dormitory_manager"))
+	cleaningList.GET("/cleanings", h.cleanings)
+
 	student := api.Group("", middleware.AuthRequired(cfg.JWT, "student"))
 	student.POST("/leaves", h.createLeave)
 	student.POST("/allocations", h.createAllocation)
@@ -273,6 +279,11 @@ func (h *Handler) pendingRepairs(c *gin.Context) {
 	respond(c, rows, err)
 }
 
+func (h *Handler) repairs(c *gin.Context) {
+	rows, err := h.svc.Repairs(c.Request.Context(), middleware.UserID(c), middleware.Role(c))
+	respond(c, rows, err)
+}
+
 func (h *Handler) acceptRepair(c *gin.Context) {
 	id, ok := paramInt64(c, "id")
 	if !ok {
@@ -295,6 +306,11 @@ func (h *Handler) completeRepair(c *gin.Context) {
 
 func (h *Handler) pendingCleanings(c *gin.Context) {
 	rows, err := h.svc.PendingCleanings(c.Request.Context())
+	respond(c, rows, err)
+}
+
+func (h *Handler) cleanings(c *gin.Context) {
+	rows, err := h.svc.Cleanings(c.Request.Context(), middleware.UserID(c), middleware.Role(c))
 	respond(c, rows, err)
 }
 

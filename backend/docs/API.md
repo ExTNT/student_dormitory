@@ -341,11 +341,25 @@ Authorization: Bearer <access_token>
 
 以下接口权限：`repair_staff`
 
+### 维修工单列表
+
+`GET /repairs`
+
+权限：`student`、`repair_staff`、`dormitory_manager`
+
+- 学生：返回自己提交的全部维修工单。
+- 维修人员：返回自己接单过的全部维修工单。
+- 宿舍管理员：返回全部维修工单。
+
+返回包含学生、房间、维修人员、审核人、维修说明、审核意见和各状态时间；照片通过附件接口按 `owner_type=repair&owner_id=工单ID&category=after` 查询。
+
 ### 待处理维修工单
 
 `GET /repairs/pending`
 
 权限：`repair_staff`、`dormitory_manager`
+
+宿舍管理员使用该接口查看 `pending`、`accepted`、`repaired` 状态的维修工单。返回包含学生、房间、维修人员、审核人、维修说明、审核意见和各状态时间；照片通过附件接口按 `owner_type=repair&owner_id=工单ID&category=after` 查询。
 
 ### 接单
 
@@ -377,11 +391,25 @@ Authorization: Bearer <access_token>
 
 以下接口权限：`cleaning_staff`
 
+### 保洁工单列表
+
+`GET /cleanings`
+
+权限：`student`、`cleaning_staff`、`dormitory_manager`
+
+- 学生：返回自己提交的全部保洁工单。
+- 保洁人员：返回自己接单过的全部保洁工单。
+- 宿舍管理员：返回全部保洁工单。
+
+返回包含学生、楼栋、保洁人员、审核人、审核意见和各状态时间；照片通过附件接口按 `owner_type=cleaning&owner_id=工单ID&category=before/after` 查询。
+
 ### 待处理保洁工单
 
 `GET /cleanings/pending`
 
 权限：`cleaning_staff`、`dormitory_manager`
+
+宿舍管理员使用该接口查看 `pending`、`accepted`、`cleaned` 状态的保洁工单。返回包含学生、楼栋、保洁人员、审核人、审核意见和各状态时间；照片通过附件接口按 `owner_type=cleaning&owner_id=工单ID&category=before/after` 查询。
 
 ### 接单
 

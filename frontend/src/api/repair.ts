@@ -2,6 +2,9 @@ import { http } from './http';
 import type { PendingRepair } from '@/types';
 
 export const repairApi = {
+  list() {
+    return http.get<PendingRepair[]>('/repairs').then((res) => res.data);
+  },
   pending() {
     return http.get<PendingRepair[]>('/repairs/pending').then((res) => res.data);
   },

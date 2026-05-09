@@ -2,6 +2,9 @@ import { http } from './http';
 import type { PendingCleaning } from '@/types';
 
 export const cleaningApi = {
+  list() {
+    return http.get<PendingCleaning[]>('/cleanings').then((res) => res.data);
+  },
   pending() {
     return http.get<PendingCleaning[]>('/cleanings/pending').then((res) => res.data);
   },

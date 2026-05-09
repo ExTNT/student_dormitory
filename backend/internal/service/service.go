@@ -637,7 +637,76 @@ func (s *Service) insertID(ctx context.Context, query string, args ...any) (int6
 
 func (s *Service) PendingRepairs(ctx context.Context) ([]model.PendingRepair, error) {
 	var rows []model.PendingRepair
-	err := s.db.SelectContext(ctx, &rows, `SELECT * FROM v_pending_repairs ORDER BY created_at`)
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			rr.id AS request_id,
+			rr.status,
+			rr.student_id,
+			student.name AS student_name,
+			rr.room_id,
+			r.room_number,
+			rr.description,
+			rr.repair_staff_id,
+			repair_staff.name AS repair_staff_name,
+			rr.repair_description,
+			rr.reviewer_id,
+			reviewer.name AS reviewer_name,
+			rr.review_comment,
+			rr.created_at,
+			rr.accepted_at,
+			rr.repaired_at,
+			rr.reviewed_at
+		FROM repair_requests rr
+		JOIN users student ON student.id = rr.student_id
+		JOIN rooms r ON r.id = rr.room_id
+		LEFT JOIN users repair_staff ON repair_staff.id = rr.repair_staff_id
+		LEFT JOIN users reviewer ON reviewer.id = rr.reviewer_id
+		WHERE rr.status IN ('pending', 'accepted', 'repaired')
+		ORDER BY rr.created_at`)
+	return rows, err
+}
+
+func (s *Service) Repairs(ctx context.Context, userID int64, role string) ([]model.PendingRepair, error) {
+	where := ""
+	args := []any{}
+	switch role {
+	case "student":
+		where = "WHERE rr.student_id = $1"
+		args = append(args, userID)
+	case "repair_staff":
+		where = "WHERE rr.repair_staff_id = $1"
+		args = append(args, userID)
+	case "dormitory_manager":
+	default:
+		return nil, fmt.Errorf("%w: invalid role", errs.ErrForbidden)
+	}
+	var rows []model.PendingRepair
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			rr.id AS request_id,
+			rr.status,
+			rr.student_id,
+			student.name AS student_name,
+			rr.room_id,
+			r.room_number,
+			rr.description,
+			rr.repair_staff_id,
+			repair_staff.name AS repair_staff_name,
+			rr.repair_description,
+			rr.reviewer_id,
+			reviewer.name AS reviewer_name,
+			rr.review_comment,
+			rr.created_at,
+			rr.accepted_at,
+			rr.repaired_at,
+			rr.reviewed_at
+		FROM repair_requests rr
+		JOIN users student ON student.id = rr.student_id
+		JOIN rooms r ON r.id = rr.room_id
+		LEFT JOIN users repair_staff ON repair_staff.id = rr.repair_staff_id
+		LEFT JOIN users reviewer ON reviewer.id = rr.reviewer_id
+		`+where+`
+		ORDER BY rr.created_at DESC`, args...)
 	return rows, err
 }
 
@@ -664,7 +733,74 @@ func (s *Service) ReviewRepair(ctx context.Context, id, reviewerID int64, req dt
 
 func (s *Service) PendingCleanings(ctx context.Context) ([]model.PendingCleaning, error) {
 	var rows []model.PendingCleaning
-	err := s.db.SelectContext(ctx, &rows, `SELECT * FROM v_pending_cleanings ORDER BY created_at`)
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			cr.id AS request_id,
+			cr.status,
+			cr.student_id,
+			student.name AS student_name,
+			cr.building_id,
+			b.name AS building_name,
+			cr.location_desc,
+			cr.cleaner_id,
+			cleaner.name AS cleaner_name,
+			cr.reviewer_id,
+			reviewer.name AS reviewer_name,
+			cr.review_comment,
+			cr.created_at,
+			cr.accepted_at,
+			cr.cleaned_at,
+			cr.reviewed_at
+		FROM cleaning_requests cr
+		JOIN users student ON student.id = cr.student_id
+		JOIN buildings b ON b.id = cr.building_id
+		LEFT JOIN users cleaner ON cleaner.id = cr.cleaner_id
+		LEFT JOIN users reviewer ON reviewer.id = cr.reviewer_id
+		WHERE cr.status IN ('pending', 'accepted', 'cleaned')
+		ORDER BY cr.created_at`)
+	return rows, err
+}
+
+func (s *Service) Cleanings(ctx context.Context, userID int64, role string) ([]model.PendingCleaning, error) {
+	where := ""
+	args := []any{}
+	switch role {
+	case "student":
+		where = "WHERE cr.student_id = $1"
+		args = append(args, userID)
+	case "cleaning_staff":
+		where = "WHERE cr.cleaner_id = $1"
+		args = append(args, userID)
+	case "dormitory_manager":
+	default:
+		return nil, fmt.Errorf("%w: invalid role", errs.ErrForbidden)
+	}
+	var rows []model.PendingCleaning
+	err := s.db.SelectContext(ctx, &rows, `
+		SELECT
+			cr.id AS request_id,
+			cr.status,
+			cr.student_id,
+			student.name AS student_name,
+			cr.building_id,
+			b.name AS building_name,
+			cr.location_desc,
+			cr.cleaner_id,
+			cleaner.name AS cleaner_name,
+			cr.reviewer_id,
+			reviewer.name AS reviewer_name,
+			cr.review_comment,
+			cr.created_at,
+			cr.accepted_at,
+			cr.cleaned_at,
+			cr.reviewed_at
+		FROM cleaning_requests cr
+		JOIN users student ON student.id = cr.student_id
+		JOIN buildings b ON b.id = cr.building_id
+		LEFT JOIN users cleaner ON cleaner.id = cr.cleaner_id
+		LEFT JOIN users reviewer ON reviewer.id = cr.reviewer_id
+		`+where+`
+		ORDER BY cr.created_at DESC`, args...)
 	return rows, err
 }
 

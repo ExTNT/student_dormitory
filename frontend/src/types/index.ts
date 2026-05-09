@@ -97,23 +97,40 @@ export interface Notification {
 export interface PendingRepair {
   request_id: number;
   status: string;
+  student_id: number;
   student_name: string;
+  room_id: number;
   room_number: string;
   description: string;
+  repair_staff_id?: number;
   created_at: string;
   repair_staff_name?: string;
+  repair_description?: string;
+  reviewer_id?: number;
   reviewer_name?: string;
+  review_comment?: string;
+  accepted_at?: string;
+  repaired_at?: string;
+  reviewed_at?: string;
 }
 
 export interface PendingCleaning {
   request_id: number;
   status: string;
+  student_id: number;
   student_name: string;
+  building_id: number;
   building_name: string;
   location_desc: string;
+  cleaner_id?: number;
   created_at: string;
   cleaner_name?: string;
+  reviewer_id?: number;
   reviewer_name?: string;
+  review_comment?: string;
+  accepted_at?: string;
+  cleaned_at?: string;
+  reviewed_at?: string;
 }
 
 export interface PendingLeave {

@@ -26,6 +26,7 @@ export const tokenStorage = {
 
 interface RetryConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
+  suppressErrorMessage?: boolean;
 }
 
 let refreshPromise: Promise<LoginResponse> | null = null;
@@ -83,7 +84,7 @@ http.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
-    if (error.response?.status !== 401) {
+    if (error.response?.status !== 401 && !config?.suppressErrorMessage) {
       ElMessage.error(getBackendMessage(error));
     }
     return Promise.reject(error);
