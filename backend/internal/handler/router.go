@@ -40,6 +40,7 @@ func NewRouter(svc *service.Service, cfg config.Config, log *zap.Logger) *gin.En
 
 	auth := api.Group("", middleware.AuthRequired(cfg.JWT))
 	auth.GET("/students/me", h.me)
+	auth.PUT("/students/me", h.updateMe)
 	auth.GET("/students/me/survey", h.latestSurvey)
 	auth.POST("/students/me/survey", h.saveSurvey)
 	auth.GET("/students/me/requests", h.myRequests)
@@ -149,6 +150,15 @@ func (h *Handler) logout(c *gin.Context) {
 
 func (h *Handler) me(c *gin.Context) {
 	user, err := h.svc.User(c.Request.Context(), middleware.UserID(c))
+	respond(c, user, err)
+}
+
+func (h *Handler) updateMe(c *gin.Context) {
+	req, bound := bindJSON[dto.UpdateCurrentUserRequest](c)
+	if !bound {
+		return
+	}
+	user, err := h.svc.UpdateCurrentUser(c.Request.Context(), middleware.UserID(c), req)
 	respond(c, user, err)
 }
 

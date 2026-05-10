@@ -22,6 +22,10 @@ type CreateUserRequest struct {
 	Phone    *string `json:"phone"`
 }
 
+type UpdateCurrentUserRequest struct {
+	Phone *string `json:"phone"`
+}
+
 type SurveyRequest struct {
 	SleepTime  *string `json:"sleep_time"`
 	Smoking    int     `json:"smoking"`

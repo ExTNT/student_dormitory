@@ -29,11 +29,13 @@ const menus: Record<Role, { path: string; label: string; icon: unknown }[]> = {
   ],
   repair_staff: [
     { path: '/repair/dashboard', label: '工作台', icon: House },
+    { path: '/repair/profile', label: '个人信息', icon: User },
     { path: '/repair/orders', label: '接收工单', icon: Tools },
     { path: '/repair/my-orders', label: '我的工单', icon: Tickets },
   ],
   cleaning_staff: [
     { path: '/cleaning/dashboard', label: '工作台', icon: House },
+    { path: '/cleaning/profile', label: '个人信息', icon: User },
     { path: '/cleaning/orders', label: '接收工单', icon: Brush },
     { path: '/cleaning/my-orders', label: '我的工单', icon: Tickets },
   ],
@@ -66,6 +68,7 @@ const visibleMenus = computed(() => {
   return items.filter((item) => {
     if (item.path === '/student/survey') return !auth.user?.has_survey;
     if (item.path === '/student/allocation') return !auth.user?.has_bed;
+    if (item.path === '/student/payment') return Boolean(auth.user?.has_bed && auth.user?.room_id);
     return true;
   });
 });

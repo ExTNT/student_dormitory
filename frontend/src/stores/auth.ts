@@ -28,6 +28,10 @@ export const useAuthStore = defineStore('auth', {
       this.user = await authApi.me();
       return this.user;
     },
+    async updateMe(data: { phone?: string }) {
+      this.user = await authApi.updateMe(data);
+      return this.user;
+    },
     async refresh() {
       this.accessToken = tokenStorage.accessToken;
       this.refreshToken = tokenStorage.refreshToken;

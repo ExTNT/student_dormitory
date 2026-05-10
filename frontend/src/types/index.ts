@@ -15,6 +15,7 @@ export interface User {
   room_number?: string;
   bed_id?: number;
   bed_label?: string;
+  avatar_attachment_id?: number;
 }
 
 export interface LoginRequest {

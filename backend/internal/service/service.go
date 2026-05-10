@@ -126,15 +126,40 @@ func (s *Service) User(ctx context.Context, id int64) (model.User, error) {
 			room.id AS room_id,
 			room.room_number,
 			bed.id AS bed_id,
-			bed.bed_label
+			bed.bed_label,
+			avatar.id AS avatar_attachment_id
 		FROM users u
 		LEFT JOIN beds bed
 			ON bed.student_id = u.id
 			AND bed.status = 'occupied'
 		LEFT JOIN rooms room ON room.id = bed.room_id
 		LEFT JOIN buildings building ON building.id = room.building_id
+		LEFT JOIN LATERAL (
+			SELECT id
+			FROM attachments
+			WHERE owner_type = 'user_avatar'
+			  AND owner_id = u.id
+			  AND category = 'avatar'
+			ORDER BY uploaded_at DESC, id DESC
+			LIMIT 1
+		) avatar ON true
 		WHERE u.id=$1`, id)
 	return user, err
+}
+
+func (s *Service) UpdateCurrentUser(ctx context.Context, id int64, req dto.UpdateCurrentUserRequest) (model.User, error) {
+	if req.Phone != nil {
+		phone := strings.TrimSpace(*req.Phone)
+		if phone == "" {
+			req.Phone = nil
+		} else {
+			req.Phone = &phone
+		}
+	}
+	if _, err := s.db.ExecContext(ctx, `UPDATE users SET phone=$1 WHERE id=$2`, req.Phone, id); err != nil {
+		return model.User{}, err
+	}
+	return s.User(ctx, id)
 }
 
 func (s *Service) ListBuildings(ctx context.Context) ([]model.Building, error) {

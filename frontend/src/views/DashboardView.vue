@@ -8,20 +8,26 @@ const auth = useAuthStore();
 const links = computed(() => {
   switch (auth.user?.role) {
     case 'student':
-      return [
-        ['/student/requests', '我的申请'],
-        ['/student/notifications', '通知'],
-        ['/student/payment', '缴费'],
-        ['/student/repair', '维修申请'],
-        ['/student/cleaning', '保洁申请'],
-      ];
+      {
+        const studentLinks = [
+          ['/student/profile', '个人信息'],
+          ['/student/requests', '我的申请'],
+          ['/student/notifications', '通知'],
+          ['/student/repair', '维修申请'],
+          ['/student/cleaning', '保洁申请'],
+        ];
+        if (auth.user?.has_bed && auth.user?.room_id) studentLinks.push(['/student/payment', '缴费']);
+        return studentLinks;
+      }
     case 'repair_staff':
       return [
+        ['/repair/profile', '个人信息'],
         ['/repair/orders', '接收维修工单'],
         ['/repair/my-orders', '我的维修工单'],
       ];
     case 'cleaning_staff':
       return [
+        ['/cleaning/profile', '个人信息'],
         ['/cleaning/orders', '接收保洁工单'],
         ['/cleaning/my-orders', '我的保洁工单'],
       ];

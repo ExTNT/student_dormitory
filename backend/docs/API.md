@@ -124,6 +124,23 @@ Authorization: Bearer <access_token>
 - `room_number`
 - `bed_id`
 - `bed_label`
+- `avatar_attachment_id`：当前头像附件 ID，若未上传头像则不存在
+
+### 更新当前用户信息
+
+`PUT /students/me`
+
+权限：任意已登录用户
+
+当前用于修改本人电话。请求：
+
+```json
+{
+  "phone": "13800000000"
+}
+```
+
+响应：更新后的当前用户信息，字段同 `GET /students/me`。
 
 ### 楼栋列表
 

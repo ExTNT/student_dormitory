@@ -11,4 +11,7 @@ export const authApi = {
   me() {
     return http.get<User>('/students/me').then((res) => res.data);
   },
+  updateMe(data: { phone?: string }) {
+    return http.put<User>('/students/me', data).then((res) => res.data);
+  },
 };
