@@ -9,6 +9,7 @@
 | `001_create_student_dormitory_schema.sql` | 创建宿舍管理系统的表、索引、视图、函数和触发器 |
 | `002_seed_student_dormitory_test_data.sql` | 插入前后端联调用测试数据，不包含工单和图片 |
 | `003_truncate_student_dormitory_data.sql` | 清空所有业务数据并重置自增序列，保留表结构、视图和触发器 |
+| `004_seed_roommate_recommendation_test_data.sql` | 插入自动舍友/床位推荐专项测试数据，构造可预测的兼容与不兼容候选宿舍 |
 
 ## 数据库前提
 
@@ -45,6 +46,12 @@ PGPASSWORD=10928 psql -U turing -d student_dormitory -f 001_create_student_dormi
 PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
 ```
 
+插入自动舍友推荐专项测试数据：
+
+```bash
+PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
+```
+
 清空所有数据：
 
 ```bash
@@ -60,6 +67,20 @@ PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/003_truncate_student
 | `repair001` | repair_staff | 维修人员 |
 | `cleaner001` | cleaning_staff | 保洁人员 |
 | `student001` - `student008` | student | 学生 |
+| `student101` - `student106` | student | 自动舍友推荐专项测试学生 |
+
+## 自动舍友推荐专项数据
+
+`004_seed_roommate_recommendation_test_data.sql` 会创建独立的 `自动推荐测试楼`，包含 701、702、703 三个测试房间：
+
+- `student101`：待分配新生，已有生活习惯问卷，无床位、无 pending 分配申请。
+- `student102`、`student103`：入住 701 A/B，作息、吸烟、打鼾和学习习惯与 `student101` 高度匹配。
+- `student104`、`student105`：入住 702 A/B，与 `student101` 明显不匹配。
+- `student106`：入住 703 A，无生活习惯问卷，用于验证无画像舍友的低权重评分。
+
+执行脚本后，以 `student101` 登录并调用 `POST /api/allocations`，预期生成的 pending 分配请求推荐 `自动推荐测试楼 701 C床`。
+
+该脚本会清理自身测试用户和测试房间相关的分配请求、问卷和床位状态，因此可以重复执行以恢复同一测试场景。
 
 ## 脚本内容
 
