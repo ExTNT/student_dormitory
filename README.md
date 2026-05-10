@@ -57,6 +57,14 @@ PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/001_create_student_d
 PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
 ```
 
+如需验证自动舍友/床位推荐算法，可额外插入专项测试数据：
+
+```bash
+PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
+```
+
+随后使用 `student101` 登录并提交分配申请，预期推荐 `自动推荐测试楼 701 C床`。
+
 如需清空业务数据并重置自增序列：
 
 ```bash
@@ -113,6 +121,7 @@ VITE_API_BASE_URL=http://localhost:8080/api npm run dev
 | `repair001` | 维修人员 |
 | `cleaner001` | 保洁人员 |
 | `student001` - `student008` | 学生 |
+| `student101` - `student106` | 自动舍友推荐专项测试学生 |
 
 ## 常用命令
 

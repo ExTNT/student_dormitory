@@ -12,23 +12,57 @@ const rows = ref<MyRequest[]>([]);
 const repairs = ref<PendingRepair[]>([]);
 const cleanings = ref<PendingCleaning[]>([]);
 const loading = ref(false);
-const sortedRows = computed(() => [...rows.value].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)));
-const sortedRepairs = computed(() => [...repairs.value].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)));
-const sortedCleanings = computed(() => [...cleanings.value].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)));
+const initialized = ref(true);
+const sortedRows = computed(() => sortByCreatedAt(rows.value));
+const sortedRepairs = computed(() => sortByCreatedAt(repairs.value));
+const sortedCleanings = computed(() => sortByCreatedAt(cleanings.value));
+const hasRequests = computed(() => sortedRows.value.length > 0);
+const hasRepairOrders = computed(() => sortedRepairs.value.length > 0);
+const hasCleaningOrders = computed(() => sortedCleanings.value.length > 0);
+const showEmptyState = computed(() => initialized.value);
+
+function normalizeList<T>(value: unknown): T[] {
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const nested = record.data ?? record.items ?? record.list ?? record.rows ?? record.records;
+    if (Array.isArray(nested)) {
+      return nested as T[];
+    }
+  }
+
+  return [];
+}
+
+function sortByCreatedAt<T extends { created_at?: string }>(value: unknown): T[] {
+  return normalizeList<T>(value).sort((a, b) => +new Date(b.created_at || 0) - +new Date(a.created_at || 0));
+}
+
+async function settleList<T>(request: Promise<unknown>): Promise<T[]> {
+  try {
+    return normalizeList<T>(await request);
+  } catch {
+    return [];
+  }
+}
 
 async function fetchRows() {
   loading.value = true;
   try {
     const [requestRows, repairRows, cleaningRows] = await Promise.all([
-      studentApi.requests(),
-      repairApi.list(),
-      cleaningApi.list(),
+      settleList<MyRequest>(studentApi.requests()),
+      settleList<PendingRepair>(repairApi.list()),
+      settleList<PendingCleaning>(cleaningApi.list()),
     ]);
     rows.value = requestRows;
     repairs.value = repairRows;
     cleanings.value = cleaningRows;
   } finally {
     loading.value = false;
+    initialized.value = true;
   }
 }
 
@@ -39,18 +73,19 @@ onMounted(fetchRows);
   <section class="page">
     <div class="toolbar">
       <h2>我的申请总览</h2>
-      <el-button @click="fetchRows">刷新</el-button>
+      <el-button :loading="loading" @click="fetchRows">刷新</el-button>
     </div>
-    <el-table v-loading="loading" :data="sortedRows">
+    <el-table v-if="hasRequests" :data="sortedRows">
       <el-table-column prop="request_type" label="类型" width="150" />
       <el-table-column prop="request_id" label="申请 ID" width="110" />
       <el-table-column label="状态" width="120"><template #default="{ row }"><StatusTag :status="row.status" /></template></el-table-column>
       <el-table-column label="创建时间" width="190"><template #default="{ row }">{{ formatDateTime(row.created_at) }}</template></el-table-column>
       <el-table-column prop="detail" label="详情" min-width="260" />
     </el-table>
+    <el-empty v-else-if="showEmptyState" class="empty-state" description="无申请" />
     <div class="data-panel">
       <h2>我的维修工单详情</h2>
-      <el-table :data="sortedRepairs" row-key="request_id">
+      <el-table v-if="hasRepairOrders" :data="sortedRepairs" row-key="request_id">
         <el-table-column type="expand">
           <template #default="{ row }">
             <el-descriptions :column="2" border>
@@ -76,10 +111,11 @@ onMounted(fetchRows);
         <el-table-column prop="description" label="描述" min-width="220" />
         <el-table-column label="创建时间" width="190"><template #default="{ row }">{{ formatDateTime(row.created_at) }}</template></el-table-column>
       </el-table>
+      <el-empty v-else-if="showEmptyState" class="empty-state" description="无工单" />
     </div>
     <div class="data-panel">
       <h2>我的保洁工单详情</h2>
-      <el-table :data="sortedCleanings" row-key="request_id">
+      <el-table v-if="hasCleaningOrders" :data="sortedCleanings" row-key="request_id">
         <el-table-column type="expand">
           <template #default="{ row }">
             <el-descriptions :column="2" border>
@@ -110,6 +146,7 @@ onMounted(fetchRows);
         <el-table-column prop="location_desc" label="位置" min-width="220" />
         <el-table-column label="创建时间" width="190"><template #default="{ row }">{{ formatDateTime(row.created_at) }}</template></el-table-column>
       </el-table>
+      <el-empty v-else-if="showEmptyState" class="empty-state" description="无工单" />
     </div>
   </section>
 </template>
@@ -128,6 +165,13 @@ onMounted(fetchRows);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+}
+
+.empty-state {
+  min-height: 180px;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.72);
 }
 
 @media (max-width: 900px) {
