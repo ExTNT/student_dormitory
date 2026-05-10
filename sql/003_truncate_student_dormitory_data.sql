@@ -23,7 +23,8 @@ TRUNCATE TABLE
     beds,
     rooms,
     buildings,
-    users
+    users,
+    refresh_tokens
 RESTART IDENTITY CASCADE;
 
 COMMIT;

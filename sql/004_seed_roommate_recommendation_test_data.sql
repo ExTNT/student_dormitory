@@ -162,7 +162,7 @@ WHERE bed.id = resolved.bed_id;
 
 WITH seed_surveys(username, sleep_time, smoking, snoring, study_habit, remarks) AS (
     VALUES
-        ('student101', TIME '23:10', 1, 0, '考研 编程 夜间自习 安静', '待分配'),
+
         ('student102', TIME '23:00', 1, 0, '考研 编程 安静', '与测试新生作息和学习习惯高度匹配'),
         ('student103', TIME '23:30', 1, 0, '考研 夜间自习 安静', '与测试新生作息和学习习惯高度匹配'),
         ('student104', TIME '02:30', 0, 1, '游戏 外放 音乐', '用于制造低分候选房间'),
