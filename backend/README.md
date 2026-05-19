@@ -7,7 +7,7 @@ Go + Gin + PostgreSQL backend for the dormitory management system.
 Prepare the database first from the repository root:
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
 ```
 
 Start the API:
@@ -29,7 +29,7 @@ Defaults live in `config/config.yaml`. Environment variables use the `DORM_` pre
 
 - `DORM_SERVER_PORT=8081`
 - `DORM_DATABASE_HOST=localhost`
-- `DORM_DATABASE_PASSWORD=10928`
+- `DORM_DATABASE_PASSWORD=passwd`
 - `DORM_JWT_SECRET=...`
 
 ## API Documentation

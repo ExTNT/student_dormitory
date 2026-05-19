@@ -47,20 +47,20 @@ flowchart LR
 先确保本机已有 PostgreSQL 数据库：
 
 ```sql
-CREATE DATABASE student_dormitory OWNER turing;
+CREATE DATABASE student_dormitory OWNER admin;
 ```
 
 在项目根目录执行：
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
 ```
 
 如需验证自动舍友/床位推荐算法，可额外插入专项测试数据：
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
 ```
 
 随后使用 `student101` 登录并提交分配申请，预期推荐 `自动推荐测试楼 701 C床`。
@@ -68,7 +68,7 @@ PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/004_seed_roommate_re
 如需清空业务数据并重置自增序列：
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/003_truncate_student_dormitory_data.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/003_truncate_student_dormitory_data.sql
 ```
 
 ### 2. 启动后端

@@ -1,6 +1,6 @@
 -- Clear all dormitory management system data while keeping schema objects.
 -- Usage:
---   PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/003_truncate_student_dormitory_data.sql
+--   PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/003_truncate_student_dormitory_data.sql
 --
 -- This script truncates all application tables and restarts identity sequences.
 -- Views, functions, triggers, indexes, and table definitions are preserved.

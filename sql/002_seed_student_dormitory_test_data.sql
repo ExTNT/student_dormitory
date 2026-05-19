@@ -1,6 +1,6 @@
 -- Dormitory management system test data
 -- Usage:
---   PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
+--   PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
 --
 -- Notes:
 --   Default password for all seeded users: 123456

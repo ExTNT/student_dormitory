@@ -16,46 +16,41 @@
 脚本默认数据库已提前创建：
 
 - 数据库名：`student_dormitory`
-- 数据库用户：`turing`
-- 用户密码：`10928`
+- 数据库用户：`admin`
+- 用户密码：`passwd`
 - 数据库类型：PostgreSQL 12+
 
 如果尚未创建数据库，可先使用具备建库权限的账号执行：
 
 ```sql
-CREATE DATABASE student_dormitory OWNER turing;
+CREATE DATABASE student_dormitory OWNER admin;
 ```
 
 ## 执行方式
 
-在项目根目录 `/home/turing/Code` 下执行：
+在项目根目录下执行：
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
 ```
 
-也可以先进入 `sql` 目录后执行：
-
-```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f 001_create_student_dormitory_schema.sql
-```
 
 插入测试数据：
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/002_seed_student_dormitory_test_data.sql
 ```
 
 插入自动舍友推荐专项测试数据：
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
 ```
 
 清空所有数据：
 
 ```bash
-PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/003_truncate_student_dormitory_data.sql
+PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/003_truncate_student_dormitory_data.sql
 ```
 
 测试账号默认密码均为 `123456`。常用账号：

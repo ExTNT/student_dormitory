@@ -324,8 +324,8 @@ server:
 database:
   host: localhost
   port: 5432
-  user: turing
-  password: 10928
+  user: admin
+  password: passwd
   name: student_dormitory
   max_open_conns: 25
 jwt:

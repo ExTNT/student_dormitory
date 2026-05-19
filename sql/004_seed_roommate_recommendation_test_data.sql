@@ -1,6 +1,6 @@
 -- Roommate recommendation test data
 -- Usage:
---   PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
+--   PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/004_seed_roommate_recommendation_test_data.sql
 --
 -- Notes:
 --   Default password for all seeded users: 123456
@@ -174,4 +174,3 @@ FROM seed_surveys ss
 JOIN users u ON u.username = ss.username;
 
 COMMIT;
-

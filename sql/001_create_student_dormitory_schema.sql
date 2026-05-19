@@ -1,9 +1,9 @@
 -- Dormitory management system schema
 -- Target database: student_dormitory
--- Owner: turing
+-- Owner: admin
 --
 -- Usage:
---   PGPASSWORD=10928 psql -U turing -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
+--   PGPASSWORD=passwd psql -U admin -d student_dormitory -f sql/001_create_student_dormitory_schema.sql
 
 BEGIN;
 
